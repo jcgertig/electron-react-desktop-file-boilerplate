@@ -1,18 +1,27 @@
 // @flow
-import React, { Component } from 'react';
-import { Link } from 'react-router';
-import styles from './Home.css';
+import React from 'react';
+import { Box, Text as DarText } from 'react-desktop/macOs';
+import { View, Text as WinText } from 'react-desktop/windows';
+import styles from '../styles/Home.css';
 
+import RenderByOS from './RenderByOS';
 
-export default class Home extends Component {
-  render() {
+export default class Home extends RenderByOS {
+  darwinRender() {
+    const { platform } = this.props;
     return (
-      <div>
-        <div className={styles.container}>
-          <h2>Home</h2>
-          <Link to="/counter">to Counter</Link>
-        </div>
-      </div>
+      <Box label="Box" padding="10px 30px">
+        <DarText>{platform}</DarText>
+      </Box>
+    );
+  }
+
+  win32Render() {
+    const { platform } = this.props;
+    return (
+      <View>
+        <WinText>{platform}</WinText>
+      </View>
     );
   }
 }

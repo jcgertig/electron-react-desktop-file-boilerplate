@@ -1,39 +1,42 @@
-@import "~font-awesome/css/font-awesome.css";
+* {
+  box-sizing: border-box;
+}
 
 body {
-  position: relative;
-  color: white;
+  margin-bottom: 0;
+}
+
+#root {
+  margin: -8px;
   height: 100vh;
-  background-color: #232C39;
-  background-image: linear-gradient(45deg, rgba(0, 216, 255, .5) 10%, rgba(0, 1, 127, .7));
-  font-family: Arial, Helvetica, Helvetica Neue, serif;
-  overflow-y: hidden;
 }
 
-h2 {
-  margin: 0;
-  font-size: 2.25rem;
-  font-weight: bold;
-  letter-spacing: -.025em;
-  color: #fff;
+.app-title-bar {
+
 }
 
-p {
-  font-size: 24px;
+.app-wrapper {
+  min-height: 100%;
+  min-width: 100%;
+  overflow-x: hidden;
 }
 
-li {
-  list-style: none;
+.app-container {
+  width: 100vw;
 }
 
-a {
-  color: white;
-  opacity: .75;
-  text-decoration: none;
+.darwin-background {
+  background-color: rgb(236, 236, 236);
 }
 
-a:hover {
-  opacity: 1;
-  text-decoration: none;
-  cursor: pointer;
+.darwin-app-wrapper {
+  padding: 10px;
+}
+
+.win32-background {
+  background-color: rgb(255, 255, 255);
+}
+
+.win32-app-wrapper {
+  padding: 12px;
 }

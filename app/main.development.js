@@ -1,8 +1,31 @@
-import { app, BrowserWindow, Menu, shell } from 'electron';
+import { app, BrowserWindow, Menu, shell, ipcMain } from 'electron';
+import { isUndefined } from 'lodash';
+import { saveFile, openFile, triggerSave } from './utils/files';
+import { REGISTER_MAIN, REGISTER, TRIGGER_WINDOW_ACTION, DATA_READY_FOR_SAVE, TRIGGER_FILE_OPEN } from './utils/consts';
+import pkg from './package.json';
 
 let menu;
 let template;
 let mainWindow = null;
+let renderer = null;
+let mainRenderer = null;
+
+ipcMain.on(REGISTER_MAIN, (event) => {
+  mainRenderer = event.sender;
+});
+
+ipcMain.on(REGISTER, (event) => {
+  renderer = event.sender;
+});
+
+ipcMain.on(DATA_READY_FOR_SAVE, () => {
+  saveFile(mainRenderer, renderer);
+});
+
+ipcMain.on(TRIGGER_FILE_OPEN, (event, argString) => {
+  const { filters } = JSON.parse(argString);
+  openFile(mainRenderer, renderer, filters);
+});
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support'); // eslint-disable-line
@@ -42,9 +65,11 @@ app.on('ready', async () => {
   await installExtensions();
 
   mainWindow = new BrowserWindow({
+    title: pkg.productName,
     show: false,
     width: 1024,
-    height: 728
+    height: 728,
+    frame: false
   });
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
@@ -56,6 +81,13 @@ app.on('ready', async () => {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+  });
+
+  ipcMain.on(TRIGGER_WINDOW_ACTION, (event, argString) => {
+    const { action, args } = JSON.parse(argString);
+    let val = mainWindow[action](...args);
+    if (isUndefined(val)) { val = 'undefined'; }
+    event.returnValue = JSON.stringify(val); // eslint-disable-line
   });
 
   if (process.env.NODE_ENV === 'development') {
@@ -74,9 +106,9 @@ app.on('ready', async () => {
 
   if (process.platform === 'darwin') {
     template = [{
-      label: 'Electron',
+      label: pkg.productName,
       submenu: [{
-        label: 'About ElectronReact',
+        label: `About ${pkg.productName}`,
         selector: 'orderFrontStandardAboutPanel:'
       }, {
         type: 'separator'
@@ -86,7 +118,7 @@ app.on('ready', async () => {
       }, {
         type: 'separator'
       }, {
-        label: 'Hide ElectronReact',
+        label: `Hide ${pkg.productName}`,
         accelerator: 'Command+H',
         selector: 'hide:'
       }, {
@@ -103,6 +135,21 @@ app.on('ready', async () => {
         accelerator: 'Command+Q',
         click() {
           app.quit();
+        }
+      }]
+    }, {
+      label: '&File',
+      submenu: [{
+        label: '&Open',
+        accelerator: 'Command+O',
+        click() {
+          openFile(mainRenderer, renderer);
+        }
+      }, {
+        label: '&Save',
+        accelerator: 'Command+S',
+        click() {
+          triggerSave(mainRenderer, renderer);
         }
       }]
     }, {
@@ -209,7 +256,16 @@ app.on('ready', async () => {
       label: '&File',
       submenu: [{
         label: '&Open',
-        accelerator: 'Ctrl+O'
+        accelerator: 'Ctrl+O',
+        click() {
+          openFile(mainRenderer, renderer);
+        }
+      }, {
+        label: '&Save',
+        accelerator: 'Ctrl+S',
+        click() {
+          triggerSave(mainRenderer, renderer);
+        }
       }, {
         label: '&Close',
         accelerator: 'Ctrl+W',
